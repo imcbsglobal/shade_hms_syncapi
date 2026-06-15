@@ -12,6 +12,17 @@ from app1.models import HmsDoctors, HmsDoctorstiming, Misel
 # ─────────────────────────────────────────────
 
 @method_decorator(csrf_exempt, name='dispatch')
+class DoctorsBulkView(View):
+    def post(self, request):
+        try:
+            records = json.loads(request.body)
+            for item in records:
+                HmsDoctors.objects.update_or_create(code=item['code'], defaults=item)
+            return JsonResponse({'synced': len(records)}, status=201)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
+@method_decorator(csrf_exempt, name='dispatch')
 class DoctorsListView(View):
 
     def get(self, request):
@@ -56,6 +67,14 @@ class DoctorsDetailView(View):
         except HmsDoctors.DoesNotExist:
             return JsonResponse({'error': 'Not found'}, status=404)
 
+    def post(self, request, code):
+        try:
+            data = json.loads(request.body)
+            obj, _ = HmsDoctors.objects.update_or_create(code=code, defaults=data)
+            return JsonResponse({'code': obj.code}, status=201)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
     def put(self, request, code):
         try:
             data = json.loads(request.body)
@@ -79,6 +98,17 @@ class DoctorsDetailView(View):
 # ─────────────────────────────────────────────
 # hms_doctorstiming
 # ─────────────────────────────────────────────
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DoctorsTimingBulkView(View):
+    def post(self, request):
+        try:
+            records = json.loads(request.body)
+            for item in records:
+                HmsDoctorstiming.objects.update_or_create(slno=item['slno'], defaults=item)
+            return JsonResponse({'synced': len(records)}, status=201)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class DoctorsTimingListView(View):
@@ -128,6 +158,14 @@ class DoctorsTimingDetailView(View):
         except HmsDoctorstiming.DoesNotExist:
             return JsonResponse({'error': 'Not found'}, status=404)
 
+    def post(self, request, slno):
+        try:
+            data = json.loads(request.body)
+            obj, _ = HmsDoctorstiming.objects.update_or_create(slno=slno, defaults=data)
+            return JsonResponse({'slno': str(obj.slno)}, status=201)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
     def put(self, request, slno):
         try:
             data = json.loads(request.body)
@@ -151,6 +189,18 @@ class DoctorsTimingDetailView(View):
 # ─────────────────────────────────────────────
 # misel
 # ─────────────────────────────────────────────
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MiselBulkView(View):
+    def post(self, request):
+        try:
+            records = json.loads(request.body)
+            records = records if isinstance(records, list) else [records]
+            for item in records:
+                Misel.objects.update_or_create(misel_primary=item['misel_primary'], defaults=item)
+            return JsonResponse({'synced': len(records)}, status=201)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class MiselListView(View):
@@ -201,6 +251,17 @@ class MiselDetailView(View):
             return JsonResponse(misel)
         except Misel.DoesNotExist:
             return JsonResponse({'error': 'Not found'}, status=404)
+
+    def post(self, request, misel_primary):
+        try:
+            data = json.loads(request.body)
+            obj, _ = Misel.objects.update_or_create(
+                misel_primary=misel_primary,
+                defaults=data,
+            )
+            return JsonResponse({'misel_primary': obj.misel_primary}, status=201)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
 
     def put(self, request, misel_primary):
         try:

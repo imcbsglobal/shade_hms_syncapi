@@ -1,20 +1,17 @@
 from django.urls import path
 from app1.views import (
-    DoctorsListView, DoctorsDetailView,
-    DoctorsTimingListView, DoctorsTimingDetailView,
-    MiselListView, MiselDetailView,
+    DoctorsDetailView, DoctorsBulkView,
+    DoctorsTimingDetailView, DoctorsTimingBulkView,
+    MiselDetailView, MiselBulkView,
 )
 
 urlpatterns = [
-    # hms_doctors
-    path('doctors/',             DoctorsListView.as_view(),        name='doctors-list'),
-    path('doctors/<str:code>/',  DoctorsDetailView.as_view(),      name='doctors-detail'),
+    path('doctors/bulk/',                   DoctorsBulkView.as_view(),         name='doctors-bulk'),
+    path('doctors/<str:code>/',             DoctorsDetailView.as_view(),       name='doctors-detail'),
 
-    # hms_doctorstiming
-    path('doctorstiming/',              DoctorsTimingListView.as_view(),   name='doctorstiming-list'),
-    path('doctorstiming/<str:slno>/',   DoctorsTimingDetailView.as_view(), name='doctorstiming-detail'),
+    path('doctorstiming/bulk/',             DoctorsTimingBulkView.as_view(),   name='doctorstiming-bulk'),
+    path('doctorstiming/<str:slno>/',       DoctorsTimingDetailView.as_view(), name='doctorstiming-detail'),
 
-    # misel
-    path('misel/',                          MiselListView.as_view(),   name='misel-list'),
-    path('misel/<str:misel_primary>/',      MiselDetailView.as_view(), name='misel-detail'),
+    path('misel/bulk/',                     MiselBulkView.as_view(),           name='misel-bulk'),
+    path('misel/<str:misel_primary>/',      MiselDetailView.as_view(),         name='misel-detail'),
 ]
