@@ -3,8 +3,29 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import json
+import uuid
 
-from app1.models import HmsDoctors, HmsDoctorstiming, Misel
+from app1.models import HmsDoctors, HmsDoctorstiming, Misel, ClientRegistration
+
+
+# ─────────────────────────────────────────────
+# client registration
+# ─────────────────────────────────────────────
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ClientRegisterView(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            machine_name = data.get('machine_name', '')
+            client_id = uuid.uuid4().hex[:13].upper()
+            ClientRegistration.objects.create(
+                client_id=client_id,
+                machine_name=machine_name,
+            )
+            return JsonResponse({'client_id': client_id}, status=201)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
 
 
 # ─────────────────────────────────────────────

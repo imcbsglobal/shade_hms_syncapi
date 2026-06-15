@@ -1,4 +1,17 @@
 from django.db import models
+import uuid
+
+
+class ClientRegistration(models.Model):
+    client_id = models.CharField(max_length=20, unique=True)
+    machine_name = models.CharField(max_length=100, null=True, blank=True)
+    registered_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'client_registration'
+
+    def __str__(self):
+        return self.client_id
 
 
 class HmsDoctors(models.Model):
