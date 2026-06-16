@@ -37,10 +37,20 @@ class DoctorsBulkView(View):
     def post(self, request):
         try:
             records = json.loads(request.body)
+            objs = []
             for item in records:
-                HmsDoctors.objects.update_or_create(code=item['code'], defaults=item)
-            return JsonResponse({'synced': len(records)}, status=201)
+                item = dict(item)
+                code = item.pop('code')
+                objs.append(HmsDoctors(code=code, **item))
+            HmsDoctors.objects.bulk_create(
+                objs,
+                update_conflicts=True,
+                unique_fields=['code'],
+                update_fields=['name', 'rate', 'department', 'avgcontime', 'qualification', 'client_id'],
+            )
+            return JsonResponse({'synced': len(objs)}, status=201)
         except Exception as e:
+            import traceback; traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=400)
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -62,10 +72,9 @@ class DoctorsListView(View):
             records = data if isinstance(data, list) else [data]
             created = []
             for item in records:
-                obj, _ = HmsDoctors.objects.update_or_create(
-                    code=item['code'],
-                    defaults=item,
-                )
+                item = dict(item)
+                code = item.pop('code')
+                obj, _ = HmsDoctors.objects.update_or_create(code=code, defaults=item)
                 created.append(obj.code)
             return JsonResponse({'created': created}, status=201)
         except Exception as e:
@@ -91,6 +100,8 @@ class DoctorsDetailView(View):
     def post(self, request, code):
         try:
             data = json.loads(request.body)
+            data = dict(data)
+            data.pop('code', None)
             obj, _ = HmsDoctors.objects.update_or_create(code=code, defaults=data)
             return JsonResponse({'code': obj.code}, status=201)
         except Exception as e:
@@ -99,6 +110,8 @@ class DoctorsDetailView(View):
     def put(self, request, code):
         try:
             data = json.loads(request.body)
+            data = dict(data)
+            data.pop('code', None)
             obj, _ = HmsDoctors.objects.update_or_create(code=code, defaults=data)
             return JsonResponse({'code': obj.code})
         except Exception as e:
@@ -125,10 +138,21 @@ class DoctorsTimingBulkView(View):
     def post(self, request):
         try:
             records = json.loads(request.body)
+            objs = []
             for item in records:
-                HmsDoctorstiming.objects.update_or_create(slno=item['slno'], defaults=item)
-            return JsonResponse({'synced': len(records)}, status=201)
+                item = dict(item)
+                slno = item.pop('slno')
+                objs.append(HmsDoctorstiming(slno=slno, **item))
+
+            HmsDoctorstiming.objects.bulk_create(
+                objs,
+                update_conflicts=True,
+                unique_fields=['slno'],
+                update_fields=['code', 'time1', 'time2', 'client_id'],
+            )
+            return JsonResponse({'synced': len(objs)}, status=201)
         except Exception as e:
+            import traceback; traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=400)
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -152,10 +176,9 @@ class DoctorsTimingListView(View):
             records = data if isinstance(data, list) else [data]
             created = []
             for item in records:
-                obj, _ = HmsDoctorstiming.objects.update_or_create(
-                    slno=item['slno'],
-                    defaults=item,
-                )
+                item = dict(item)
+                slno = item.pop('slno')
+                obj, _ = HmsDoctorstiming.objects.update_or_create(slno=slno, defaults=item)
                 created.append(str(obj.slno))
             return JsonResponse({'created': created}, status=201)
         except Exception as e:
@@ -182,6 +205,8 @@ class DoctorsTimingDetailView(View):
     def post(self, request, slno):
         try:
             data = json.loads(request.body)
+            data = dict(data)
+            data.pop('slno', None)
             obj, _ = HmsDoctorstiming.objects.update_or_create(slno=slno, defaults=data)
             return JsonResponse({'slno': str(obj.slno)}, status=201)
         except Exception as e:
@@ -190,6 +215,8 @@ class DoctorsTimingDetailView(View):
     def put(self, request, slno):
         try:
             data = json.loads(request.body)
+            data = dict(data)
+            data.pop('slno', None)
             obj, _ = HmsDoctorstiming.objects.update_or_create(slno=slno, defaults=data)
             return JsonResponse({'slno': str(obj.slno)})
         except Exception as e:
@@ -217,10 +244,20 @@ class MiselBulkView(View):
         try:
             records = json.loads(request.body)
             records = records if isinstance(records, list) else [records]
+            objs = []
             for item in records:
-                Misel.objects.update_or_create(misel_primary=item['misel_primary'], defaults=item)
-            return JsonResponse({'synced': len(records)}, status=201)
+                item = dict(item)
+                misel_primary = item.pop('misel_primary')
+                objs.append(Misel(misel_primary=misel_primary, **item))
+            Misel.objects.bulk_create(
+                objs,
+                update_conflicts=True,
+                unique_fields=['misel_primary'],
+                update_fields=['firm_name', 'address', 'mobile', 'address1', 'address2', 'address3', 'tinno', 'client_id'],
+            )
+            return JsonResponse({'synced': len(objs)}, status=201)
         except Exception as e:
+            import traceback; traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=400)
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -228,7 +265,6 @@ class MiselListView(View):
 
     def get(self, request):
         try:
-            # case-insensitive lookup for misel_primary
             qs = Misel.objects.filter(misel_primary__iexact='a')
             client_id = request.GET.get('client_id')
             if client_id:
@@ -244,9 +280,8 @@ class MiselListView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            misel_primary = data.get('misel_primary', 'a')
-
-            # Always update — no conflict check, client_id updates freely
+            data = dict(data)
+            misel_primary = data.pop('misel_primary', 'a')
             obj, _ = Misel.objects.update_or_create(
                 misel_primary=misel_primary,
                 defaults=data,
@@ -276,6 +311,8 @@ class MiselDetailView(View):
     def post(self, request, misel_primary):
         try:
             data = json.loads(request.body)
+            data = dict(data)
+            data.pop('misel_primary', None)
             obj, _ = Misel.objects.update_or_create(
                 misel_primary=misel_primary,
                 defaults=data,
@@ -287,6 +324,8 @@ class MiselDetailView(View):
     def put(self, request, misel_primary):
         try:
             data = json.loads(request.body)
+            data = dict(data)
+            data.pop('misel_primary', None)
             obj, _ = Misel.objects.update_or_create(
                 misel_primary=misel_primary,
                 defaults=data,
